@@ -57,27 +57,29 @@ def IDF(filedict,dict):
                 else :
                     dict[word]+=1
     print(len(dict))
-    with open("./data"+"/"+"all_fre"+".txt", "w+", encoding="utf-8") as output:
-	    for key in dict.keys():
-		    output.write(key + ":" + str(dict[key]) + "\n")   #保存IDF
     for key in dict.keys():
         idf = math.log10(18829/dict[key])
         dict[key]=idf
+    with open("./data"+"/"+"all_fre"+".txt", "w+", encoding="utf-8") as output:
+	    for key in dict.keys():
+		    output.write(key + ":" + str(dict[key]) + "\n")   #保存IDF
+    
 
 #计算TF*IDF并筛选词典,返回更新后的词典
 def TF_IDF(path,filedict,dict):
     fin_dict = {}
-    dict_t = {}
-    for key in dict.keys():
-        dict_t[key]=0
+    #dict_t = {}
+    #for key in dict.keys():
+    #    dict_t[key]=0
     for file in filedict.keys():
         for text in filedict[file].keys():
             for word in list(filedict[file][text]):  #遍历到单词
                 if word in dict:
                     TF=filedict[file][text][word]
-                    TFIDF=TF*dict[word]
+                    TFIDF=round(TF*dict[word],4)#保留小数点后四位
                     filedict[file][text][word]=TFIDF
                     if (TFIDF >=15)and not(word in fin_dict):  #加到新词典
+                        #print(str(word),TFIDF)
                         fin_dict[word]=dict[word]
                     '''if TFIDF>=2:          #########################
                         filedict[file][text].pop(word)
@@ -90,31 +92,32 @@ def TF_IDF(path,filedict,dict):
 
     with open("./data"+"/"+"final_dict"+".txt", "w+", encoding="utf-8") as output:
 	    for key in fin_dict.keys():
-		    output.write(key +"\n")      #保存最终词典
+		    output.write(key + ":" + str(dict[key]) + "\n")      #保存最终词典
     print(len(fin_dict))
     return fin_dict
-#生成向量空间并保存，每个文本一个
-def Build_VSM(path,filedict,dict):
+#生成向量空间并保存，每个文件夹一个
+def Build_VSM(path,filedict,fin_dict):
     if not os.path.exists(path):
         os.mkdir(path)
     #dict_t = {}
     for file in filedict.keys():
-        filepath = path +"/" +file
-        if not os.path.exists(filepath):
-            os.mkdir(filepath)
+        #filepath = path +"/" +file
+        #if not os.path.exists(filepath):
+        #    os.mkdir(filepath)
         #for key in dict.keys():
             #dict_t[key] = 0
         for text in filedict[file].keys():
             '''for word in filedict[file][text].keys():
             if word in dict_t:
                 dict_t[word]=1 '''
-            with open(filepath+"/"+text+"_fre.text", "w", encoding="utf-8") as output:
-                for key in dict.keys():
-                    if key in filedict[file][text]:
-                        output.write("1 ") 
-                    else:
-                        output.write("0 ")
-
+            if not os.path.exists(path+"/"+str(file)):
+                with open(path+"/"+str(file), "a", encoding="utf-8") as output:
+                    for key in fin_dict.keys():
+                        if key in filedict[file][text]:
+                            output.write(str(filedict[file][text][key])+" ") 
+                        else:
+                            output.write("0 ")
+                    output.write("\n")
 
 if __name__ == '__main__':                   
     path='./data/20news-18828'
